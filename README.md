@@ -4,5 +4,6 @@ Basic actionscript environment and/or flash "emulator" base that translates ever
 
 #To do
 - [x] Add bracket depth system for tracking position of proper syntax replacement
-- [] Add more detailed fill system 
-- [] Add more vector variety
+- [ ] Add list of valid parameters for listener types and more
+- [ ] Add more detailed fill system 
+- [ ] Add more vector variety
