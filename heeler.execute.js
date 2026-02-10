@@ -272,7 +272,7 @@ let Heeler = {
 						codeOnlySegment += inQuote ? " " : char;
 					}
 					
-					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').split(' ');
+					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').replaceAll('){',') {').split(' ');
 					console.log(codeOnlyTokens);
 					
 					let typePresent = codeOnlySegment.includes(" "+typeName+" ");
