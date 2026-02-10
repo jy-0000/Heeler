@@ -2,6 +2,7 @@
 let controlState = {
 	playing:false,
 	frame:1,
+	maxFrames:10,
 	mouse:{
 		clicking:false,
 		up:false,
@@ -25,8 +26,12 @@ document.body.onmouseup = () => {
 
 let drawTypes = {
 	"rectangle": (newVector) => {
-		ctx.fillStyle = newVector.fill;
+		ctx.strokeStyle = newVector.strokeColor || "black";
+		ctx.strokeWidth = newVector.strokeWidth || 0;
+		ctx.fillStyle = newVector.fill || "magenta";
+		
 		ctx.fillRect(newVector.x,newVector.y,newVector.width,newVector.height);
+		if(ctx.strokeWidth > 0)ctx.stroke();
 	}
 };
 let callEnds = [";",") {","){"];
@@ -60,6 +65,22 @@ let scriptTypes = {
 		replacement:{type:"none"}
 	}
 };
+let Shapegen = {
+	"polygon":(vector,fill,stroke, ...instructions) => {
+		ctx.fillStyle = fill;
+		ctx.strokeStyle = stroke;
+		
+		ctx.moveTo(vector.x,vector.y);
+		for(let i=0;i<instructions.length;i++){
+			let currentInstruct = instructions[i];
+			ctx.lineTo(currentInstruct.x,currentInstruct.y);
+		}
+		ctx.lineTo(vector.x,vector.y);
+		
+		ctx.stroke();
+		ctx.fill();
+	}
+};
 Scene.listeners = {
 	"release":{}
 }
@@ -67,6 +88,19 @@ Scene.listeners = {
 function trace(txt){
     //more stuff here later
 	console.log(txt);
+}
+function play(){
+	controlState.playing=true;
+	let frameLoop = () => {
+		if(controlState.frame < controlState.maxFrames)controlState.frame++;
+		else controlState.frame = 1;
+		
+		if(controlState.playing)setTimeout(frameLoop,1000/Scene.FPS);
+	};
+	frameLoop();
+}
+function stop(){
+	controlState.playing=false;
 }
 function gotoAndPlay(frameIndex){
 	controlState.frame=frameIndex;
@@ -134,14 +168,16 @@ let controlTicks = 0;
 let listenerNames = Object.keys(Scene.listeners);
 Scene.loop = () => {
 	ctx.clearRect(0,0,heeler_output.width,heeler_output.height);
-	let objectNames = Object.keys(Scene.Objects);
+	let objectNames = Object.keys(Scene.Sprites);
 		
 	let mouseBox = controlState.mouse.box;
 	for(let i=0;i<objectNames.length;i++){
 		let objectName = objectNames[i];
-		let currentObject = Scene.Objects[objectName];
+		let currentObject = Scene.Sprites[objectName];
+		
+		let currentShapes = currentObject.spriteLayer.map(r => {return Scene.Shapes[r];});
 			
-		let currentObjectBox = currentObject.frames[controlState.frame-1];
+		let currentObjectBox = currentObject.vector;
 		for(let i=0;i<listenerNames.length;i++){
 			let currentListenerName = listenerNames[i];
 			(Scene.listeners[currentListenerName].objectList || []).forEach(listenerObject => {
@@ -156,7 +192,19 @@ Scene.loop = () => {
 				}
 			});
 		}
-		drawTypes[currentObject.type[0]](currentObjectBox);
+		currentShapes.forEach(currentObjectShape => {
+			let currentFrame = currentObjectShape.frames[controlState.frame-1] || currentObjectShape.vector;
+			let newVector = {
+				width:currentFrame.width || currentObjectShape.vector.width,
+				height:currentFrame.height || currentObjectShape.vector.height,
+				fill:currentFrame.fill,
+				x:currentObject.vector.x+(currentFrame.x || 0),
+				y:currentObject.vector.y+(currentFrame.y || 0)
+			};
+			//console.log(newVector);
+			drawTypes[currentObjectShape.type[0]](newVector);
+		});
+		
 	}
 	//if(controlState.mouse.up)alert(1);
 	
@@ -171,13 +219,13 @@ let Heeler = {
 		heeler_output.height=Scene.height;
 			
 		 
-		let objectNames = Object.keys(Scene.Objects);
+		let objectNames = Object.keys(Scene.Sprites);
 		let listeners = {};
 		let typeList = Object.keys(scriptTypes);
 			
 		for(let i=0;i<objectNames.length;i++){
 			let objectName = objectNames[i];
-			let currentObject = Scene.Objects[objectName];
+			let currentObject = Scene.Sprites[objectName];
 				
 			let calls = appendTokens(currentObject.scripts[0],callEnds,endToken).split(endToken);
 			let result = ``;
@@ -292,7 +340,7 @@ let Heeler = {
 		Scene.loop();
 		for(let i=0;i<objectNames.length;i++){
 			let objectName = objectNames[i];
-			let currentObject = Scene.Objects[objectName];
+			let currentObject = Scene.Sprites[objectName];
 			eval(currentObject.scripts[1]);
 		}
 	}	
