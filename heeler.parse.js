@@ -10,7 +10,7 @@ let Scene = {
 		"shapeButton":{
 			type:['rectangle'],
 			vector:{
-				width:300,height:90,fill:'red'
+				width:300,height:90,fill:'red',strokeColor:'black',strokeWidth:1
 			},
 			frames: [
 				this.vector, //frame 1
@@ -30,13 +30,16 @@ let Scene = {
 		"button":{
 			type:['rectangle','symbol'], 
 			scripts:[`
-				on (release) {
-				    var x = 5;
+				function goat(){
+					var x = 5;
 				    if(x > 1){
 					    trace("hollo if(){} werld 2");
 				    }
 					play();
-                   }
+				}
+				on (release) {
+				    goat();
+                 }
 				trace("hollo werld 1");
 			`],
 			vector:{x:100,y:100,width:300,height:90},
