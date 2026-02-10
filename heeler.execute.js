@@ -272,10 +272,10 @@ let Heeler = {
 						codeOnlySegment += inQuote ? " " : char;
 					}
 					
-					let codeOnlyTokens = codeOnlySegment.split(' ');
-					console.log(codeOnlyTokens);
+					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').split(' ');
+					
 					let typePresent = codeOnlySegment.includes(" "+typeName+" ");
-					let nextExpectedPresent = (codeOnlySegment.includes(" "+nextExpected) || codeOnlyTokens[codeOnlyTokens.indexOf(typeName)+2].startsWith(nextExpected));	
+					let nextExpectedPresent = (codeOnlySegment.includes(" "+nextExpected) || (codeOnlySegment !== '' && codeOnlyTokens[codeOnlyTokens.indexOf(typeName)+2].startsWith(nextExpected)) );	
 					
 					let isBegin = (typePresent && nextExpectedPresent) 
 					|| 
