@@ -273,6 +273,7 @@ let Heeler = {
 					}
 					
 					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').replaceAll('){',') {').split(' ');
+					console.log(codeOnlySegment);
 					console.log(codeOnlyTokens);
 					
 					let typePresent = codeOnlySegment.includes(" "+typeName+" ");
