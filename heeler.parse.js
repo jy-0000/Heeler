@@ -5,7 +5,28 @@ let dump = heeler_dump.getContext('2d');
 let Scene = {
 	width:550,
 	height:400,
-	Objects: {
+	FPS:15,
+	Shapes: {
+		"shapeButton":{
+			type:['rectangle'],
+			vector:{
+				width:300,height:90,fill:'red'
+			},
+			frames: [
+				this.vector, //frame 1
+				{x:0,y:0,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:1},
+				{x:5,y:5,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:1.25},
+				{x:10,y:10,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:1.50},
+				{x:15,y:15,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:1.75},
+				{x:20,y:20,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:2},
+				{x:25,y:25,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:2.25},
+				{x:30,y:30,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:2.50},
+				{x:35,y:35,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:2.75},
+				{x:40,y:40,width:300,height:90,fill:'orange',strokeColor:'black',strokeWidth:3}, //frame 10
+			]
+		}
+	},
+	Sprites: {
 		"button":{
 			type:['rectangle','symbol'], 
 			scripts:[`
@@ -14,25 +35,15 @@ let Scene = {
 				    if(x > 1){
 					    trace("hollo if(){} werld 2");
 				    }
-					gotoAndPlay(10);
+					play();
                    }
 				trace("hollo werld 1");
 			`],
-			vector:{
-				x:100,y:100,width:300,height:90,fill:'red'
-			},
-			frames: [
-				{x:100,y:100,width:300,height:90,fill:'red'}, //frame 1
-				{x:100,y:100,width:300,height:90,fill:'orange'},
-				{x:100,y:100,width:300,height:90,fill:'yellow'},
-				{x:100,y:100,width:300,height:90,fill:'green'},
-				{x:100,y:100,width:300,height:90,fill:'red'},
-				{x:100,y:100,width:300,height:90,fill:'orange'},
-				{x:100,y:100,width:300,height:90,fill:'yellow'},
-				{x:100,y:100,width:300,height:90,fill:'green'},
-				{x:100,y:100,width:300,height:90,fill:'red'},
-				{x:100,y:100,width:300,height:90,fill:'blue'}, //frame 10
+			vector:{x:100,y:100,width:300,height:90},
+			spriteLayer:[
+				'shapeButton'
 			]
 		}
 	},
+	
 };
