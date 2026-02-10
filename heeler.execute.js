@@ -31,7 +31,8 @@ let drawTypes = {
 		ctx.fillStyle = newVector.fill || "magenta";
 		
 		ctx.fillRect(newVector.x,newVector.y,newVector.width,newVector.height);
-		if(ctx.strokeWidth > 0)ctx.stroke();
+		
+		if(newVector.strokeWidth > 0)ctx.strokeRect(newVector.x,newVector.y,newVector.width,newVector.height);
 	}
 };
 let callEnds = [";",") {","){"];
@@ -55,15 +56,15 @@ let scriptTypes = {
 		},
 		replacement:{type:"none"}
 	},
-	"gotoAndPlay":{
-	    type:"parameter-injection",
+	"function":{
+	    type:"listener",
 		expected:{
 			next:"(",
 			end:")",
-			encasing:[";"]
+			encasing:["{","}"]
 		},
 		replacement:{type:"none"}
-	}
+	},
 };
 let Shapegen = {
 	"polygon":(vector,fill,stroke, ...instructions) => {
@@ -194,12 +195,15 @@ Scene.loop = () => {
 		}
 		currentShapes.forEach(currentObjectShape => {
 			let currentFrame = currentObjectShape.frames[controlState.frame-1] || currentObjectShape.vector;
+			let currentShapeVector = currentObjectShape.vector;
 			let newVector = {
-				width:currentFrame.width || currentObjectShape.vector.width,
-				height:currentFrame.height || currentObjectShape.vector.height,
+				width:currentFrame.width || currentShapeVector.width,
+				height:currentFrame.height || currentShapeVector.height,
 				fill:currentFrame.fill,
 				x:currentObject.vector.x+(currentFrame.x || 0),
-				y:currentObject.vector.y+(currentFrame.y || 0)
+				y:currentObject.vector.y+(currentFrame.y || 0),
+				strokeWidth:currentShapeVector.strokeWidth || 0,
+				strokeColor:currentShapeVector.strokeColor || 'black'
 			};
 			//console.log(newVector);
 			drawTypes[currentObjectShape.type[0]](newVector);
@@ -267,9 +271,13 @@ let Heeler = {
 						
 						codeOnlySegment += inQuote ? " " : char;
 					}
-        
-						
-					let isBegin = (codeOnlySegment.includes(typeName+" ") && codeOnlySegment.includes(" "+nextExpected)) 
+					
+					let codeOnlyTokens = codeOnlySegment.split(' ');
+					console.log(codeOnlyTokens);
+					let typePresent = codeOnlySegment.includes(" "+typeName+" ");
+					let nextExpectedPresent = (codeOnlySegment.includes(" "+nextExpected) || codeOnlyTokens[codeOnlyTokens.indexOf(typeName)+2].startsWith(nextExpected));	
+					
+					let isBegin = (typePresent && nextExpectedPresent) 
 					|| 
 					(codeOnlySegment.includes(typeName+nextExpected));
                    
