@@ -273,8 +273,8 @@ let Heeler = {
 					}
 					
 					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').replaceAll('){',') {').split(' ').filter(item => {return item.length > 0;});
-					console.log(codeOnlyTokens);
-					let typePresent = codeOnlySegment.includes(" "+typeName+" ") ? true : codeOnlySegment.includes(typeName+" ");
+					//console.log(codeOnlyTokens);
+					let typePresent = codeOnlySegment.includes(" "+typeName+" ") ? true : codeOnlySegment.includes(typeName+" ") || codeOnlySegment.includes(typeName+nextExpected);
 
 					let nextExpectedIndex = codeOnlyTokens[codeOnlyTokens.indexOf(typeName)+2] || "";
 					let nextExpectedPresent = (
