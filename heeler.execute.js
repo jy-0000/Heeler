@@ -272,9 +272,7 @@ let Heeler = {
 						codeOnlySegment += inQuote ? " " : char;
 					}
 					
-					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').replaceAll('){',') {').split(' ');
-					console.log(codeOnlySegment);
-					console.log(codeOnlyTokens);
+					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').replaceAll('){',') {').split(' ').filter(item => {return item.length > 0;});
 					
 					let typePresent = codeOnlySegment.includes(" "+typeName+" ");
 					let nextExpectedPresent = (codeOnlySegment.includes(" "+nextExpected) || (codeOnlySegment !== '' && codeOnlyTokens[codeOnlyTokens.indexOf(typeName)+2].startsWith(nextExpected)) );	
