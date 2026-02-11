@@ -35,7 +35,7 @@ let drawTypes = {
 		if(newVector.strokeWidth > 0)ctx.strokeRect(newVector.x,newVector.y,newVector.width,newVector.height);
 	}
 };
-let callEnds = [";",") {","){"];
+let callEnds = [";",") {","){","}"];
 let formatEndings = ["} \n","}\n"];
 let endToken = "<|end|>";
 let scriptTypes = {
