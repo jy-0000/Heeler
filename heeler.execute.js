@@ -273,7 +273,7 @@ let Heeler = {
 					}
 					
 					let codeOnlyTokens = codeOnlySegment.replaceAll('\n','').replaceAll('){',') {').split(' ').filter(item => {return item.length > 0;});
-					
+					console.log(codeOnlyTokens);
 					let typePresent = codeOnlySegment.includes(" "+typeName+" ") ? true : codeOnlySegment.includes(typeName+" ");
 					let nextExpectedPresent = (codeOnlySegment.includes(" "+nextExpected) || (codeOnlySegment !== '' && codeOnlyTokens[codeOnlyTokens.indexOf(typeName)+2].startsWith(nextExpected)) );	
 					
