@@ -241,7 +241,7 @@ let Heeler = {
 			let lastDepth = 0;
 			let bracketDepth = 0;
 			calls.forEach(callSegment => {
-				let resultingSegment = appendTokens(callSegment,['}\n','} \n'],'}; ',true);
+				let resultingSegment = appendTokens(callSegment,['}\n','} \n'],'}; \n',true);
 				console.log(resultingSegment);
 				let segmentHadListener = false;
     	        
