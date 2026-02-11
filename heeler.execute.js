@@ -339,7 +339,7 @@ let Heeler = {
 									if(currentLevel.depth === bracketDepth && !currentLevel.complete) {
 										currentLevel.complete = true;
 										if(currentLevel.replacementType == "function"){
-											resultingSegment = appendTokens(resultingSegment,[currentLevel.encasing[1]],',"'+objectName+'"); ');
+											resultingSegment = appendTokens(resultingSegment,[currentLevel.encasing[1]],',"'+objectName+'") ');
 										}
 									}
 								});
