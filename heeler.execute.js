@@ -1,4 +1,4 @@
-//prototype
+//      prototype
 let controlState = {
 	playing:false,
 	frame:1,
