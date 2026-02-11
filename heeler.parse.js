@@ -30,8 +30,12 @@ let Scene = {
 		"button":{
 			type:['rectangle','symbol'], 
 			scripts:[`
-				on (release) {
+			    function blueHeeler(){
+			        play();
 				    trace("hollo werld 2 if(){}");
+				}
+				on (release) {
+				    blueHeeler();
                  }
 				trace("hollo werld 1");
 			`],
