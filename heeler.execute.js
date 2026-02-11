@@ -36,6 +36,7 @@ let drawTypes = {
 	}
 };
 let callEnds = [";",") {","){"];
+let formatEndings = ["} \n","}\n"];
 let endToken = "<|end|>";
 let scriptTypes = {
 	"on":{
@@ -240,9 +241,9 @@ let Heeler = {
 			let lastDepth = 0;
 			let bracketDepth = 0;
 			calls.forEach(callSegment => {
-				let resultingSegment = callSegment;
+				let resultingSegment = appendTokens(callSegment,['}\n','} \n'],'}; \n',true);
 				let segmentHadListener = false;
-    
+    	        
 				typeList.forEach(typeName => {
 					let fullType = scriptTypes[typeName];
 					let nextExpected = fullType.expected.next;
