@@ -30,15 +30,8 @@ let Scene = {
 		"button":{
 			type:['rectangle','symbol'], 
 			scripts:[`
-				function goat(){
-					var x = 5;
-				    if(x > 1){
-					    trace("hollo if(){} werld 2");
-				    }
-					play();
-				}
 				on (release) {
-				    goat();
+				    trace("hollo werld 2 if(){}");
                  }
 				trace("hollo werld 1");
 			`],
