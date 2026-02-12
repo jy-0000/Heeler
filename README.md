@@ -7,4 +7,5 @@ Basic actionscript environment and/or flash "emulator" base that translates ever
 - (50%) Add list of valid parameters for listener types and more
 - [ ] Add context to bracket depths
 - [ ] Add more detailed fill system 
-- [ ] Add more vector variety
+- (1%) Add more vector variety
+- [ ] Add basic .SWF parsing
