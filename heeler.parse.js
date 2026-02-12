@@ -1,4 +1,4 @@
-//this is an html5/javascript representation of a flash object for demo purposes. true emulation would parse an swf and fit the Scene object to that. 
+//this is an html5/javascript representation of a flash scene for demo purposes. true emulation would parse an swf and fit the Scene object to that. 
 //actionscript 2 below is compiled into js ahead of time. the javascript result proceeds as usual through the browser definition of eval()
 let ctx = heeler_output.getContext('2d');
 let dump = heeler_dump.getContext('2d');
