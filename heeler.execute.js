@@ -84,7 +84,12 @@ let Shapegen = {
 	}
 };
 Scene.listeners = {
-	"release":{}
+	"release":{},
+	"press":{},
+	"rollOver":{},
+	"rollOut":{},
+	"dragOver":{},
+	"dragOut":{}
 }
 	
 function trace(txt){
@@ -107,9 +112,34 @@ function stop(){
 function gotoAndPlay(frameIndex){
 	controlState.frame=frameIndex;
 }
-function on_release(effect,referenceName){
-	if(Scene.listeners["release"].objectList == undefined)Scene.listeners.release.objectList = [];
-	Scene.listeners.release.objectList.push({name:referenceName,effect:effect});
+function on_release(effect, referenceName) {
+	if(Scene.listeners["release"].objectList == undefined) Scene.listeners.release.objectList = [];
+	Scene.listeners.release.objectList.push({name: referenceName, effect: effect});
+}
+
+function on_press(effect, referenceName) {
+	if(Scene.listeners["press"].objectList == undefined) Scene.listeners.press.objectList = [];
+	Scene.listeners.press.objectList.push({name: referenceName, effect: effect});
+}
+
+function on_rollOver(effect, referenceName) {
+	if(Scene.listeners["rollOver"].objectList == undefined) Scene.listeners.rollOver.objectList = [];
+	Scene.listeners.rollOver.objectList.push({name: referenceName, effect: effect});
+}
+
+function on_rollOut(effect, referenceName) {
+	if(Scene.listeners["rollOut"].objectList == undefined) Scene.listeners.rollOut.objectList = [];
+	Scene.listeners.rollOut.objectList.push({name: referenceName, effect: effect});
+}
+
+function on_dragOver(effect, referenceName) {
+	if(Scene.listeners["dragOver"].objectList == undefined) Scene.listeners.dragOver.objectList = [];
+	Scene.listeners.dragOver.objectList.push({name: referenceName, effect: effect});
+}
+
+function on_dragOut(effect, referenceName) {
+	if(Scene.listeners["dragOut"].objectList == undefined) Scene.listeners.dragOut.objectList = [];
+	Scene.listeners.dragOut.objectList.push({name: referenceName, effect: effect});
 }
 function collisionRect(rect1,rect2){
 	let overlapX = rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x;
