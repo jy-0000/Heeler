@@ -2,13 +2,14 @@
 <img src="./img/logo/logo.png" width="64" height="64" alt="Heeler Logo"> <br>
 A custom environment/emulator for Flash Player and creating flash content in real-time. Uses AOT Actionscript 2 to Javascript for scripting capabilities.
 Future plans include SWF parsing and Sprites + Shapes "abstraction" system for conversion to simple js representation.
-(Prototype)
+(Hacky prototype mess)
 
-#About
+# About
 index.html includes a demo with basic UI also accessible by Github pages.
 heeler.execute.js and heeler.parse.js should run on their own, best at the bottom of the page after all your content.
 
-#Example
+# Example
+Spawn the heeler canvas and execute the flash contents.
 ```js
 let heelerContents = Heeler.spawn();
 		
