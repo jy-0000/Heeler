@@ -4,6 +4,20 @@ A custom environment/emulator for Flash Player and creating flash content in rea
 Future plans include SWF parsing and Sprites + Shapes "abstraction" system for conversion to simple js representation.
 (Prototype)
 
+#About
+index.html includes a demo with basic UI also accessible by Github pages.
+heeler.execute.js and heeler.parse.js should run on their own, best at the bottom of the page after all your content.
+
+#Example
+```js
+let heelerContents = Heeler.spawn();
+		
+let heelerCanvas = heelerContents.element;
+		
+heelerCanvas.style.border = "2px solid gray";
+Heeler.run();
+```
+
 # To do
 - [x] Add bracket depth system for tracking position of proper syntax replacement
 - (25%) Add list of valid parameters for listener types and more
