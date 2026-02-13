@@ -2,26 +2,31 @@
 let controlState = {
 	playing:false,
 	frame:1,
-	maxFrames:10,
+	maxFrames:7,
 	mouse:{
 		clicking:false,
 		up:false,
 		down:false,
 		box:{
-		    width:25,height:25,
+		    width:16,height:16,
 			x:0,y:0
 		}
-	}
+	},
+	loop:true
 };
+let heelerExists = () => {return typeof heeler_output !== 'undefined' && typeof ctx !== 'undefined';};
 let canvasMargins = {x:0,y:0};
-let adjustMargin = () => {canvasMargins = heeler_output.getBoundingClientRect();};
+let adjustMargin = () => {if(heelerExists())canvasMargins = heeler_output.getBoundingClientRect();};
 adjustMargin();
-setInterval(adjustMargin,5000);
+setInterval(adjustMargin,2000);
 document.body.onmousemove = (e) => {controlState.mouse.box.x=e.clientX-canvasMargins.x; controlState.mouse.box.y=e.clientY-canvasMargins.y;}
-document.body.onmousedown = () => {controlState.mouse.clicking=true; controlState.mouse.down=true; controlState.mouse.up=false;}
+document.body.onmousedown = () => {
+	controlState.mouse.clicking=true; setTimeout(() => {if(controlState.mouse.clicking)controlState.mouse.clicking=false;},10);
+	controlState.mouse.down=true; controlState.mouse.up=false;
+	}
 document.body.onmouseup = () => {
 	controlState.mouse.clicking=false; controlState.mouse.down=false; controlState.mouse.up=true;
-	setTimeout(() => {if(!controlState.mouse.clicking)controlState.mouse.up=false;},15);
+	setTimeout(() => {if(!controlState.mouse.clicking)controlState.mouse.up=false;},10);
 };
 
 let drawTypes = {
@@ -36,6 +41,9 @@ let drawTypes = {
 	}
 };
 let callEnds = [";",") {","){","}"];
+let varSwaps = {
+	//'stage.frameRate':'Scene.FPS'
+};
 let formatEndings = ["} \n","}\n"];
 let endToken = "<|end|>";
 let scriptTypes = {
@@ -84,12 +92,12 @@ let Shapegen = {
 	}
 };
 Scene.listeners = {
-	"release":{},
-	"press":{},
-	"rollOver":{},
-	"rollOut":{},
-	"dragOver":{},
-	"dragOut":{}
+	"release":{condition:(boundingBoxes)=>{ return controlState.mouse.up && collisionRect(boundingBoxes[0],boundingBoxes[1]); }},
+	"press":{condition:(boundingBoxes)=>{ return controlState.mouse.clicking && collisionRect(boundingBoxes[0],boundingBoxes[1]); }},
+	"rollOver":{condition:(boundingBoxes)=>{ return collisionRect(boundingBoxes[0],boundingBoxes[1]); }},
+	//"rollOut":{},
+	//"dragOver":{},
+	//"dragOut":{}
 }
 	
 function trace(txt){
@@ -97,6 +105,8 @@ function trace(txt){
 	console.log(txt);
 }
 function play(){
+	if(!controlState.playing){
+		
 	controlState.playing=true;
 	let frameLoop = () => {
 		if(controlState.frame < controlState.maxFrames)controlState.frame++;
@@ -105,6 +115,8 @@ function play(){
 		if(controlState.playing)setTimeout(frameLoop,1000/Scene.FPS);
 	};
 	frameLoop();
+	
+	}
 }
 function stop(){
 	controlState.playing=false;
@@ -199,6 +211,10 @@ function appendTokens(inputScript,victims,victimReplacement,fullReplace=false) {
 let controlTicks = 0;
 let listenerNames = Object.keys(Scene.listeners);
 Scene.loop = () => {
+	if(!heelerExists()){setTimeout(Scene.loop,1000);}
+	else{
+		
+		
 	ctx.clearRect(0,0,heeler_output.width,heeler_output.height);
 	let objectNames = Object.keys(Scene.Sprites);
 		
@@ -209,15 +225,17 @@ Scene.loop = () => {
 		
 		let currentShapes = currentObject.spriteLayer.map(r => {return Scene.Shapes[r];});
 			
-		let currentObjectBox = currentObject.vector;
+		let currentObjectBox = {
+			x:currentObject.vector.x-currentObject.vector.width/2,y:currentObject.vector.y-currentObject.vector.height/2,
+			width:currentObject.vector.width,height:currentObject.vector.height
+			};
 		for(let i=0;i<listenerNames.length;i++){
 			let currentListenerName = listenerNames[i];
 			(Scene.listeners[currentListenerName].objectList || []).forEach(listenerObject => {
 				if(listenerObject.name == objectName){
 					
 					if(
-						controlState.mouse.up &&
-						collisionRect(mouseBox,currentObjectBox)
+						Scene.listeners[currentListenerName].condition([mouseBox,currentObjectBox]) || false
 					){
 						listenerObject.effect();
 					}
@@ -231,8 +249,8 @@ Scene.loop = () => {
 				width:currentFrame.width || currentShapeVector.width,
 				height:currentFrame.height || currentShapeVector.height,
 				fill:currentFrame.fill,
-				x:currentObject.vector.x+(currentFrame.x || 0),
-				y:currentObject.vector.y+(currentFrame.y || 0),
+				x:(currentObject.vector.x - currentFrame.width/2)+(currentFrame.x || 0),
+				y:(currentObject.vector.y - currentFrame.height/2)+(currentFrame.y || 0),
 				strokeWidth:currentShapeVector.strokeWidth || 0,
 				strokeColor:currentShapeVector.strokeColor || 'black'
 			};
@@ -245,11 +263,17 @@ Scene.loop = () => {
 	
 	drawTypes["rectangle"]({x:mouseBox.x,y:mouseBox.y,width:mouseBox.width,height:mouseBox.height,fill:'black'});
 	//controlstatelog.innerText = JSON.stringify(controlState.mouse);
-	setTimeout(Scene.loop,10);
+	if(controlState.loop)setTimeout(Scene.loop,10);
+	
+	
+	}
 }
 	
-let Heeler = {
-     run:() => {
+Heeler.run = () => {
+	if(!heelerExists()){setTimeout(Heeler.run,1000);}
+	else{
+		
+		
 		heeler_output.width=Scene.width;
 		heeler_output.height=Scene.height;
 			
@@ -272,7 +296,12 @@ let Heeler = {
 			let bracketDepth = 0;
 			calls.forEach(callSegment => {
 				let resultingSegment = appendTokens(callSegment,['}\n','} \n'],'}; \n',true);
-				console.log(resultingSegment);
+				Object.keys(varSwaps).forEach(swapTarget => {
+					if(resultingSegment.includes(swapTarget)){
+						resultingSegment = appendTokens(callSegment,[swapTarget],varSwaps[swapTarget],true);
+					}
+				});
+				//console.log(resultingSegment);
 				let segmentHadListener = false;
     	        
 				typeList.forEach(typeName => {
@@ -328,7 +357,10 @@ let Heeler = {
 						if(fullType.type == "listener"){
 							let listenerType = codeOnlySegment.substring(codeOnlySegment.indexOf(nextExpected)+1,codeOnlySegment.indexOf(endExpected));
 							containerLevels[typeName+"_"+listenerType]={depth:bracketDepth,complete:false,encasing:fullType.expected.encasing,replacementType:fullType.replacement.type};
-							if(fullType.replacement.type == "function")resultingSegment=typeName+"_"+listenerType+`(() => `+fullType.expected.encasing[0];
+							if(fullType.replacement.type == "function"){
+								if(!Object.keys(Scene.listeners).includes(listenerType)){console.error('Invalid listener "'+listenerType+'" inside on() statement: on('+listenerType+')');}
+								else {resultingSegment=typeName+"_"+listenerType+`(() => `+fullType.expected.encasing[0]; }
+							}
 							segmentHadListener = true;
 							bracketDepth++;
 						}
@@ -359,6 +391,7 @@ let Heeler = {
             
 
 						if (!inQuote) {
+							
 							if (char === '{') {
 								bracketDepth++;
 							} else if (char === '}') {
@@ -388,7 +421,5 @@ let Heeler = {
 			let currentObject = Scene.Sprites[objectName];
 			eval(currentObject.scripts[1]);
 		}
-	}	
-};
-	
-Heeler.run();
+	}
+}	
