@@ -1,5 +1,5 @@
 # Heeler
-![Heeler Logo](./img/logo/logo.png) \
+<img src="./img/logo/logo.png" width="64" height="64" alt="Heeler Logo"> <br>
 A custom environment/emulator for Flash Player and creating flash content in real-time. Uses AOT Actionscript 2 to Javascript for scripting capabilities.
 Future plans include SWF parsing and Sprites + Shapes "abstraction" system for conversion to simple js representation.
 (Prototype)
