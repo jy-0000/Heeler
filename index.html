@@ -1,9 +1,53 @@
-<title>Heeler</title>
-<p style="background:black;color:white;" id="controlstatelog"></p>
-<br>
-<br>
-<br>
-<canvas id="heeler_output"></canvas>
-<canvas id="heeler_dump"></canvas>
-<script src="heeler.parse.js"></script>
-<script src="heeler.execute.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Heeler</title>
+	<link rel="icon" href="./img/logo/logo.png">
+	<style>
+		body {
+			background-image: linear-gradient(rgb(255,255,255), rgb(0,90,120));
+			background-attachment: fixed;
+			background-position: 0px 0px;
+			background-size: 100% 100%;
+		}
+		.menu {
+		    display:flex;
+			flex-direction:row;
+		}
+		.main {
+			background-image: linear-gradient(rgb(0, 90, 120), rgb(140 164 173));
+			padding:8px;
+			border:1px solid gray;
+			border-radius:5px;
+		}
+	</style>
+</head>
+<body>
+	<div class="main menu">
+	    <img src="./img/logo/logo_wide.png" width="auto" height="86" class="logo">
+		<div class="menu" id="menucontent>
+			
+		</div>
+	</div>
+	<hr>
+	<script src="heeler.parse.js"></script>
+	<script src="heeler.execute.js"></script>
+	<script defer>
+	    let heelerContents = Heeler.spawn();
+		
+		let heelerCanvas = heelerContents.element;
+		
+		heelerCanvas.style.border = "2px solid gray";
+		Heeler.run();
+		
+		let menuButtons = {
+			'run_scene':{
+				label:'Run',
+				onpress:()=>{
+					
+				}
+			}
+		};
+	</script>
+</body>
+</html>
