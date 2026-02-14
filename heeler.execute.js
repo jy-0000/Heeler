@@ -15,7 +15,15 @@ let controlState = {
 	loop:true
 };
 Heeler.getScene = () => {return Object.assign({},Scene);};
-Heeler.swapScene = (incomingScene) => {controlState.loop = false; if(heelerExists()){ heeler_output.remove(); heeler_dump.remove(); }; Scene = incomingScene; };
+Heeler.swapScene = (incomingScene) => {
+	controlState.loop = false;
+	if(heelerExists()){ heeler_output.remove(); heeler_dump.remove(); }; 
+	Scene = incomingScene; 
+	let newElement = Heeler.spawn();
+	Heeler.run();
+
+	return newElement;
+};
 let heelerExists = () => {return typeof heeler_output !== 'undefined' && typeof ctx !== 'undefined';};
 let canvasMargins = {x:0,y:0};
 let adjustMargin = () => {if(heelerExists())canvasMargins = heeler_output.getBoundingClientRect();};
