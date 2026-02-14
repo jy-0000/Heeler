@@ -34,6 +34,7 @@
 	<script src="heeler.execute.js"></script>
 	<script defer>
 	    let heelerContents = Heeler.spawn();
+		let heelerScene = Heeler.getScene();
 		
 		let heelerCanvas = heelerContents.element;
 		
@@ -44,7 +45,9 @@
 			'run_scene':{
 				label:'Run',
 				onpress:()=>{
-					
+					heelerCanvas.remove();
+					Heeler.swapScene(heelerScene);
+					Heeler.run();
 				}
 			}
 		};
