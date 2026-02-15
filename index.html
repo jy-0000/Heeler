@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html>
 <head>
 	<title>Heeler</title>
@@ -45,8 +45,9 @@
 			'run_scene':{
 				label:'Run',
 				onpress:()=>{
-					Heeler.swapScene(heelerScene);
-					Heeler.run();
+					heelerContents = Heeler.swapScene(heelerScene);
+					heelerCanvas = heelerContents.element;
+					heelerCanvas.style.border = "2px solid gray";
 				}
 			}
 		};
