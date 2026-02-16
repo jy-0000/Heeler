@@ -17,18 +17,35 @@ let controlState = {
 Heeler.getScene = () => {return Object.assign({},Scene);};
 Heeler.swapScene = (incomingScene) => {
 	controlState.loop = false;
+	stop();
+	controlState.frame = 0;
+	
+	//Scene.listeners[name].objectList
+	Object.keys(Scene.listeners).forEach(listenerName => {
+		Scene.listeners[listenerName].objectList = [];
+	});
+	
 	if(heelerExists()){ heeler_output.remove(); heeler_dump.remove(); }; 
 	Scene = incomingScene; 
 	let newElement = Heeler.spawn();
 	Heeler.run();
-
+	
+	controlState.loop = true;
 	return newElement;
 };
 let heelerExists = () => {return typeof heeler_output !== 'undefined' && typeof ctx !== 'undefined';};
 let canvasMargins = {x:0,y:0};
+
+
 let adjustMargin = () => {if(heelerExists())canvasMargins = heeler_output.getBoundingClientRect();};
 adjustMargin();
+
 setInterval(adjustMargin,2000);
+window.addEventListener("scroll", (event) => {
+	adjustMargin();
+});
+
+
 document.body.onmousemove = (e) => {controlState.mouse.box.x=e.clientX-canvasMargins.x; controlState.mouse.box.y=e.clientY-canvasMargins.y;}
 document.body.onmousedown = () => {
 	controlState.mouse.clicking=true; setTimeout(() => {if(controlState.mouse.clicking)controlState.mouse.clicking=false;},10);
@@ -295,7 +312,7 @@ Heeler.run = () => {
 		for(let i=0;i<objectNames.length;i++){
 			let objectName = objectNames[i];
 			let currentObject = Scene.Sprites[objectName];
-				
+			currentObject.scripts = currentObject.scripts.slice(0,1);
 			let calls = appendTokens(currentObject.scripts[0],callEnds,endToken).split(endToken);
 			let result = ``;
 				
@@ -429,7 +446,9 @@ Heeler.run = () => {
 		for(let i=0;i<objectNames.length;i++){
 			let objectName = objectNames[i];
 			let currentObject = Scene.Sprites[objectName];
-			eval(currentObject.scripts[1]);
+			eval(`(()=>{
+				${currentObject.scripts[1]} 
+			})();`);
 		}
 	}
 }	
