@@ -18,7 +18,15 @@ let heelerCanvas = heelerContents.element;
 heelerCanvas.style.border = "2px solid gray";
 Heeler.run();
 ```
+You can also get the SWF Scene representation, and swap it out.
+```js
+let heelerScene = Heeler.getScene();
+//heelerScene.Sprites, heelerScene.Shapes, etc
 
+//make changes you want
+
+Heeler.swapScene(heelerScene)
+```
 # To do
 - [x] Add bracket depth system for tracking position of proper syntax replacement
 - (25%) Add list of valid parameters for listener types and more
