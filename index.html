@@ -117,7 +117,7 @@
 					editorcontent.innerHTML="";
 					let currentSprite = heelerScene.Sprites[incomingSpriteName];
 					editorcontent.insertAdjacentHTML('beforeEnd',`
-						"${incomingSpriteName}" script on enter: <br>
+						"${incomingSpriteName}" action: <br>
 						<textarea style="width:275px;height:400px;" id="${incomingSpriteName}_script">${currentSprite.scripts[0]}</textarea>
 						<button onclick="heelerScene.Sprites['${incomingSpriteName}'].scripts[0]=document.getElementById('${incomingSpriteName}_script').value;">
 							Add to "${incomingSpriteName}"
