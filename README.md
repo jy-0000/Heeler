@@ -4,6 +4,9 @@ A custom environment/emulator for Flash Player and creating flash content in rea
 Future plans include SWF parsing and Sprites + Shapes "abstraction" system for conversion to simple js representation.
 (Hacky prototype mess)
 
+Heeler parses Actionscript 2 and in the future AS3, which can be combined with javascript however you like as long as it makes sense.
+You are not allowed to artificially breed mutant babies between keywords.
+
 # About
 index.html includes a demo with basic UI also accessible by Github pages.
 heeler.execute.js and heeler.parse.js should run on their own, best at the bottom of the page after all your content.
