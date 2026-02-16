@@ -9,10 +9,15 @@
 			background-attachment: fixed;
 			background-position: 0px 0px;
 			background-size: 100% 100%;
+			font-family: Roboto, Tahoma, sans-serif;
 		}
 		.menu {
 		    display:flex;
 			flex-direction:row;
+			align-items:center;
+		}
+		.buttons {
+			max-height:20px;
 		}
 		.main {
 			background-image: linear-gradient(rgb(0, 90, 120), rgb(140 164 173));
@@ -20,12 +25,21 @@
 			border:1px solid gray;
 			border-radius:5px;
 		}
+		button {
+			background-image: linear-gradient(white,rgb(60,60,60));
+			box-shadow: inset 0px 0px 3px 2px white;
+			padding:5px 5px;
+			border-radius:5px;
+		}
+		.editor {position:absolute;top:25%;right:0px;width:300px;height:600px;background:rgba(0,0,0,0.4);color:white;}
+		.editor canvas {border:1px solid white;}
+		button:hover {filter:brightness(1.2);}
 	</style>
 </head>
 <body>
 	<div class="main menu">
 	    <img src="./img/logo/logo_wide.png" width="auto" height="86" class="logo">
-		<div class="menu" id="menucontent">
+		<div class="menu buttons" id="menucontent">
 			
 		</div>
 	</div>
@@ -51,6 +65,68 @@
 				}
 			}
 		};
+		Object.keys(menuButtons).forEach(buttonId => {
+			menucontent.insertAdjacentHTML('beforeend',`
+				<button id="${buttonId}" onclick="menuButtons['${buttonId}'].onpress()">
+					${menuButtons[buttonId].label}
+				</button>
+			`);
+		});
+		let editorApps = {};
+		setTimeout(() => {
+			document.body.insertAdjacentHTML('beforeend',`
+				<div class="editor" id="editorcontent">
+				
+				</div>
+			`);
+			editorApps = {
+				"spriteList":()=>{
+				editorcontent.innerHTML="";
+					Object.keys(heelerScene.Sprites).forEach(spriteName => {
+						let currentSprite = heelerScene.Sprites[spriteName];
+						let shapeList = currentSprite.spriteLayer.map(r => {
+							return {vector:heelerScene.Shapes[r].vector,type:heelerScene.Shapes[r].type};
+						});
+					
+						editorcontent.insertAdjacentHTML('beforeEnd',`
+							<p>${spriteName}</p>
+							<canvas width="128" height="128" id="thumbnail_${spriteName}" style="background:gray" onclick="editorApps['loadScript']('${spriteName}')"></canvas>
+							<hr>
+						`);
+					
+						let ctxt = document.getElementById("thumbnail_"+spriteName).getContext("2d");
+						shapeList.forEach((currentShape,i) => {
+						//simple example, will need a Heeler.drawShape() feature of some kind in the future
+							if(currentShape.type.includes("rectangle")){
+								ctxt.strokeStyle=currentShape.vector.strokeColor || "black";
+								ctxt.strokeWidth=currentShape.vector.strokeWidth || 0;
+								ctxt.fillStyle=currentShape.vector.fill || "magenta";
+								
+								let baseWidth = currentSprite.vector.width/4;
+								let baseHeight = currentSprite.vector.height/4;
+								let newWidth = currentShape.vector.width/4;
+								let newHeight = currentShape.vector.height/4;
+								ctxt.fillRect((0-baseWidth/2)+64,(0-newHeight/2)+64,newWidth,newHeight);
+								ctxt.stroke();
+							}
+						});
+					});
+			
+				},
+				"loadScript":(incomingSpriteName)=>{
+					editorcontent.innerHTML="";
+					let currentSprite = heelerScene.Sprites[incomingSpriteName];
+					editorcontent.insertAdjacentHTML('beforeEnd',`
+						"${incomingSpriteName}" script on enter: <br>
+						<textarea style="width:275px;height:400px;" id="${incomingSpriteName}_script">${currentSprite.scripts[0]}</textarea>
+						<button onclick="heelerScene.Sprites['${incomingSpriteName}'].scripts[0]=document.getElementById('${incomingSpriteName}_script').value;">
+							Add to "${incomingSpriteName}"
+						</button>
+					`);
+				}
+			};
+			editorApps["spriteList"]();
+		},1000);
 	</script>
 </body>
 </html>
