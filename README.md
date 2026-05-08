@@ -1,8 +1,7 @@
 # Heeler
 <img src="./img/logo/logo.png" width="64" height="64" alt="Heeler Logo"> <br>
-A custom environment/emulator for Flash Player and creating flash content in real-time. Uses AOT Actionscript 2 to Javascript for scripting capabilities.
-Future plans include SWF parsing and Sprites + Shapes "abstraction" system for conversion to simple js representation.
-(Hacky prototype mess)
+A custom environment/emulator for Flash Player and creating flash content in real-time. Uses AOT Actionscript 2 to Javascript for scripting capabilities. (Hacky mess) 
+This emulator differs from others due to the abstraction/scene system. The end goal is to allow users to parse SWF's, modify SWF's entirely in the browser outside of JPEXS/adobe flash, and repackage said SWF'S for the web to be modified as if it were regular javascript or page content. 
 
 Heeler parses Actionscript 2 and in the future AS3, which can be combined with javascript however you like as long as it makes sense.
 You are not allowed to artificially breed mutant babies between keywords.
