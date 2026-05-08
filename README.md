@@ -29,9 +29,10 @@ let heelerScene = Heeler.getScene();
 
 Heeler.swapScene(heelerScene)
 ```
-# To do
+# To do 
+<!-- THESE PERCENTAGE NUMBERS COME FROM THIN  FUCKING AIR, PLS HELP ME MAKE THEM MORE REALISTIC -->
 - [x] Add bracket depth system for tracking position of proper syntax replacement
-- (25%) Add list of valid parameters for listener types and more
+- (1%) Add list of valid parameters for listener types and more
 - [ ] Add context to bracket depths
 - [ ] Add more detailed fill system 
 - (1%) Add more vector variety
