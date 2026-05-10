@@ -188,19 +188,33 @@ class SWFParser {
 			this.data = view;
 		} else if (signature === 'CWS') {
 			// ZLIB compressed
-			this.data = this.decompressZlib(view.slice(8));
+			if (typeof pako === 'undefined') {
+				throw new Error('Compression not supported. Include pako library for CWS decompression.');
+			}
+			try {
+				// Skip first 8 bytes (signature + version + file length)
+				const compressedData = view.slice(8);
+				const decompressed = pako.inflate(compressedData);
+				
+				// Reconstruct the full SWF data with header
+				const reconstructed = new Uint8Array(8 + decompressed.length);
+				reconstructed.set(view.slice(0, 8), 0); // Copy header
+				reconstructed.set(decompressed, 8); // Add decompressed data
+				
+				// Update file length in header (little-endian at bytes 4-7)
+				const newLength = 8 + decompressed.length;
+				reconstructed[4] = newLength & 0xFF;
+				reconstructed[5] = (newLength >> 8) & 0xFF;
+				reconstructed[6] = (newLength >> 16) & 0xFF;
+				reconstructed[7] = (newLength >> 24) & 0xFF;
+				
+				this.data = reconstructed;
+			} catch (e) {
+				throw new Error(`Decompression failed: ${e.message}`);
+			}
 		} else {
 			throw new Error('Invalid SWF signature');
 		}
-	}
-
-	decompressZlib(compressedData) {
-		// Use pako or built-in decompression
-		if (typeof pako !== 'undefined') {
-			return new Uint8Array(pako.inflate(compressedData));
-		}
-		// Fallback: parse manually for simple cases
-		throw new Error('Compression not supported. Include pako library for CWS decompression.');
 	}
 
 	parseTags(reader) {
