@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Heeler - Flash Emulator</title>
+	<!-- Include pako for CWS (compressed) SWF support -->
+	<script src="https://cdn.jsdelivr.net/npm/pako@2/dist/pako.min.js"></script>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			margin: 0;
+			padding: 20px;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			min-height: 100vh;
+		}
+
+		.container {
+			max-width: 1400px;
+			margin: 0 auto;
+		}
+
+		header {
+			background: rgba(255, 255, 255, 0.95);
+			padding: 20px;
+			border-radius: 8px;
+			margin-bottom: 20px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+
+		header h1 {
+			margin: 0;
+			color: #333;
+			font-size: 28px;
+		}
+
+		header p {
+			margin: 5px 0 0 0;
+			color: #666;
+			font-size: 14px;
+		}
+
+		.controls {
+			display: flex;
+			gap: 10px;
+			margin-top: 15px;
+			flex-wrap: wrap;
+		}
+
+		button {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			padding: 10px 20px;
+			border-radius: 5px;
+			cursor: pointer;
+			font-weight: 500;
+			transition: all 0.3s ease;
+			font-size: 14px;
+		}
+
+		button:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+		}
+
+		button:active {
+			transform: translateY(0);
+		}
+
+		button.secondary {
+			background: rgba(0, 0, 0, 0.1);
+			color: #333;
+			border: 2px solid #667eea;
+		}
+
+		button.secondary:hover {
+			background: rgba(102, 126, 234, 0.1);
+		}
+
+		.file-upload {
+			position: relative;
+			overflow: hidden;
+			display: inline-block;
+		}
+
+		.file-upload input[type="file"] {
+			position: absolute;
+			left: 0;
+			top: 0;
+			opacity: 0;
+			width: 100%;
+			height: 100%;
+			cursor: pointer;
+		}
+
+		.main-content {
+			display: grid;
+			grid-template-columns: 1fr 300px;
+			gap: 20px;
+			margin-bottom: 20px;
+		}
+
+		.canvas-wrapper {
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 8px;
+			padding: 20px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 500px;
+		}
+
+		#heeler_output {
+			max-width: 100%;
+			max-height: 100%;
+			border: 2px solid #667eea;
+			border-radius: 4px;
+			background: white;
+		}
+
+		.sidebar {
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 8px;
+			padding: 20px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			max-height: 600px;
+			overflow-y: auto;
+		}
+
+		.sidebar h3 {
+			margin-top: 0;
+			color: #333;
+			font-size: 16px;
+			border-bottom: 2px solid #667eea;
+			padding-bottom: 10px;
+		}
+
+		.info-panel {
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 8px;
+			padding: 20px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+
+		.info-row {
+			display: grid;
+			grid-template-columns: 120px 1fr;
+			gap: 10px;
+			margin-bottom: 10px;
+			font-size: 13px;
+		}
+
+		.info-label {
+			font-weight: 600;
+			color: #667eea;
+		}
+
+		.info-value {
+			color: #333;
+			word-break: break-word;
+		}
+
+		.status {
+			padding: 10px;
+			border-radius: 4px;
+			margin-bottom: 10px;
+			font-size: 13px;
+			font-weight: 500;
+		}
+
+		.status.success {
+			background: #d4edda;
+			color: #155724;
+			border: 1px solid #c3e6cb;
+		}
+
+		.status.error {
+			background: #f8d7da;
+			color: #721c24;
+			border: 1px solid #f5c6cb;
+		}
+
+		.status.info {
+			background: #d1ecf1;
+			color: #0c5460;
+			border: 1px solid #bee5eb;
+		}
+
+		.property-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+
+		.property-list li {
+			padding: 8px;
+			background: rgba(0, 0, 0, 0.02);
+			margin-bottom: 5px;
+			border-radius: 3px;
+			font-size: 12px;
+			border-left: 3px solid #667eea;
+		}
+
+		.editor {
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 8px;
+			padding: 20px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			margin-bottom: 20px;
+		}
+
+		textarea {
+			width: 100%;
+			height: 300px;
+			padding: 10px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			font-family: 'Courier New', monospace;
+			font-size: 12px;
+			resize: vertical;
+		}
+
+		@media (max-width: 768px) {
+			.main-content {
+				grid-template-columns: 1fr;
+			}
+
+			.controls {
+				flex-direction: column;
+			}
+
+			button {
+				width: 100%;
+			}
+		}
+
+		#heeler_dump {
+			display: none;
+		}
+
+		.version-badge {
+			display: inline-block;
+			background: #667eea;
+			color: white;
+			padding: 4px 8px;
+			border-radius: 3px;
+			font-size: 12px;
+			margin-left: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<header>
+			<h1>🎬 Heeler <span class="version-badge">v2.0</span></h1>
+			<p>Flash/ActionScript 2 Emulator for Web Browsers</p>
+
+			<div class="controls">
+				<div class="file-upload">
+					<button>📁 Load SWF File</button>
+					<input type="file" id="swfFileInput" accept=".swf" />
+				</div>
+				<button id="playBtn">▶ Play</button>
+				<button id="stopBtn">⏹ Stop</button>
+				<button id="resetBtn">↻ Reset</button>
+				<button id="runSceneBtn" class="secondary">Run Current Scene</button>
+			</div>
+		</header>
+
+		<div class="main-content">
+			<div class="canvas-wrapper">
+				<canvas id="heeler_output" width="550" height="400"></canvas>
+			</div>
+
+			<div class="sidebar">
+				<div id="sidebarContent">
+					<h3>Scene Info</h3>
+					<div class="status info">No scene loaded</div>
+					<p style="font-size: 12px; color: #666;">
+						Load a SWF file or create a new scene to get started.
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="info-panel">
+			<h3>Frame Information</h3>
+			<div class="info-row">
+				<div class="info-label">Current Frame:</div>
+				<div class="info-value" id="currentFrame">1</div>
+			</div>
+			<div class="info-row">
+				<div class="info-label">Playing:</div>
+				<div class="info-value" id="playingStatus">No</div>
+			</div>
+			<div class="info-row">
+				<div class="info-label">FPS:</div>
+				<div class="info-value" id="fpsDisplay">-</div>
+			</div>
+			<div class="info-row">
+				<div class="info-label">Canvas Size:</div>
+				<div class="info-value" id="canvasSize">-</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Include Heeler libraries -->
+	<script src="heeler_swf_parser.js"></script>
+	<script src="heeler_execute_v2.js"></script>
+
+	<script>
+		// Application state
+		let currentScene = null;
+		let swfData = null;
+
+		// Initialize default scene
+		function createDefaultScene() {
+			const scene = new HeelerScene({
+				frameWidth: 550,
+				frameHeight: 400,
+				frameRate: 24,
+				frameCount: 7
+			});
+
+			scene.Sprites['button'] = new HeelerSymbol(1, 'button', 'Button');
+			scene.Sprites['button'].properties = {
+				x: 275,
+				y: 200,
+				scaleX: 1,
+				scaleY: 1,
+				rotation: 0,
+				alpha: 1,
+				visible: true,
+				width: 300,
+				height: 150
+			};
+
+			scene.Sprites['button'].displayList = [
+				{
+					type: 'rectangle',
+					x: -150,
+					y: -75,
+					width: 300,
+					height: 150,
+					fill: 'rgb(255,140,140)',
+					strokeColor: 'orange',
+					strokeWidth: 1
+				}
+			];
+
+			// Add button click handler
+			scene.listeners.release.objectList = [
+				{
+					name: 'button',
+					effect: () => {
+						console.log('Button released!');
+						if (controlState.playing) {
+							Heeler.stop();
+						} else {
+							Heeler.play();
+						}
+						updatePlayingStatus();
+					}
+				}
+			];
+
+			return scene;
+		}
+
+		// Initialize default scene
+		function createDefaultScene() {
+			const scene = new HeelerScene({
+				frameWidth: 550,
+				frameHeight: 400,
+				frameRate: 24,
+				frameCount: 7
+			});
+
+			scene.Sprites['button'] = new HeelerSymbol(1, 'button', 'Button');
+			scene.Sprites['button'].properties = {
+				x: 275,
+				y: 200,
+				scaleX: 1,
+				scaleY: 1,
+				rotation: 0,
+				alpha: 1,
+				visible: true,
+				width: 300,
+				height: 150
+			};
+
+			scene.Sprites['button'].displayList = [
+				{
+					type: 'rectangle',
+					x: -150,
+					y: -75,
+					width: 300,
+					height: 150,
+					fill: 'rgb(255,140,140)',
+					strokeColor: 'orange',
+					strokeWidth: 1
+				}
+			];
+
+			// Add button click handler
+			scene.listeners.release.objectList = [
+				{
+					name: 'button',
+					effect: () => {
+						console.log('Button released!');
+						if (controlState.playing) {
+							Heeler.stop();
+						} else {
+							Heeler.play();
+						}
+						updatePlayingStatus();
+					}
+				}
+			];
+
+			return scene;
+		}
+
+		// Handle SWF file upload
+		document.getElementById('swfFileInput').addEventListener('change', async (e) => {
+			const file = e.target.files[0];
+			if (!file) return;
+
+			showStatus(`Loading ${file.name}...`, 'info');
+
+			const reader = new FileReader();
+			reader.onload = async (event) => {
+				try {
+					const arrayBuffer = event.target.result;
+					
+					// Check if it's actually a SWF file
+					const view = new Uint8Array(arrayBuffer);
+					const sig = String.fromCharCode(view[0], view[1], view[2]);
+					if (sig !== 'FWS' && sig !== 'CWS') {
+						throw new Error(`Invalid file signature: "${sig}" (expected FWS or CWS)`);
+					}
+
+					const parser = new SWFParser(arrayBuffer);
+					swfData = parser.parse();
+
+					// Create scene from SWF data
+					currentScene = new HeelerScene(swfData);
+					Heeler.Scene = currentScene;
+
+					// Update UI
+					updateSidebarWithSWFInfo();
+					updateCanvasSize();
+
+					showStatus(
+						`✓ SWF v${swfData.version} loaded: ${swfData.frameWidth}x${swfData.frameHeight} @ ${swfData.frameRate} FPS, ${swfData.frameCount} frames`,
+						'success'
+					);
+
+					// Run the scene
+					Heeler.run();
+				} catch (error) {
+					showStatus(`✗ Error: ${error.message}`, 'error');
+					console.error('SWF parsing error:', error);
+				}
+			};
+
+			reader.onerror = (error) => {
+				showStatus(`✗ File read error: ${error}`, 'error');
+			};
+
+			reader.readAsArrayBuffer(file);
+		});
+
+		// Update sidebar with SWF info
+		function updateSidebarWithSWFInfo() {
+			if (!swfData) return;
+
+			const html = `
+				<h3>SWF Information</h3>
+				<div class="status success">SWF loaded successfully</div>
+				<ul class="property-list">
+					<li><strong>Version:</strong> ${swfData.version}</li>
+					<li><strong>Size:</strong> ${swfData.frameWidth}×${swfData.frameHeight}px</li>
+					<li><strong>FPS:</strong> ${swfData.frameRate}</li>
+					<li><strong>Frames:</strong> ${swfData.frameCount}</li>
+					<li><strong>Shapes:</strong> ${Object.keys(swfData.shapes || {}).length}</li>
+					<li><strong>Symbols:</strong> ${Object.keys(swfData.symbols || {}).length}</li>
+					<li><strong>Sprites:</strong> ${Object.keys(currentScene.Sprites || {}).length}</li>
+				</ul>
+			`;
+
+			document.getElementById('sidebarContent').innerHTML = html;
+		}
+
+		// Control buttons
+		document.getElementById('playBtn').addEventListener('click', () => {
+			Heeler.play();
+			controlState.playing = true;
+			updatePlayingStatus();
+		});
+
+		document.getElementById('stopBtn').addEventListener('click', () => {
+			Heeler.stop();
+			controlState.playing = false;
+			updatePlayingStatus();
+		});
+
+		document.getElementById('resetBtn').addEventListener('click', () => {
+			Heeler.stop();
+			controlState.frame = 1;
+			controlState.playing = false;
+			updatePlayingStatus();
+		});
+
+		document.getElementById('runSceneBtn').addEventListener('click', () => {
+			if (!currentScene) {
+				currentScene = createDefaultScene();
+				Heeler.Scene = currentScene;
+				Heeler.run();
+			}
+			Heeler.play();
+			controlState.playing = true;
+			updatePlayingStatus();
+		});
+
+		// Update UI
+		function updatePlayingStatus() {
+			document.getElementById('playingStatus').textContent = controlState.playing ? 'Yes' : 'No';
+		}
+
+		function updateCanvasSize() {
+			if (Heeler.Scene) {
+				document.getElementById('canvasSize').textContent = `${Heeler.Scene.width}×${Heeler.Scene.height}px`;
+				document.getElementById('fpsDisplay').textContent = Heeler.Scene.FPS;
+			}
+		}
+
+		function showStatus(message, type) {
+			const statusDiv = document.createElement('div');
+			statusDiv.className = `status ${type}`;
+			statusDiv.textContent = message;
+
+			const header = document.querySelector('header');
+			header.appendChild(statusDiv);
+
+			setTimeout(() => statusDiv.remove(), 5000);
+		}
+
+		// Update frame info periodically
+		setInterval(() => {
+			document.getElementById('currentFrame').textContent = controlState.frame;
+			document.getElementById('playingStatus').textContent = controlState.playing ? 'Yes' : 'No';
+		}, 100);
+
+		// Initialize on page load
+		window.addEventListener('load', () => {
+			// Create and display default scene
+			currentScene = createDefaultScene();
+			Heeler.Scene = currentScene;
+			Heeler.run();
+			updateCanvasSize();
+			
+			// Update sidebar with default scene info
+			const html = `
+				<h3>Default Scene</h3>
+				<div class="status info">No SWF loaded yet</div>
+				<p style="font-size: 12px; color: #666;">
+					Click "📁 Load SWF File" to load a Flash file,<br>
+					or click "Run Current Scene" to see the default animation.
+				</p>
+			`;
+			document.getElementById('sidebarContent').innerHTML = html;
+			
+			showStatus('Heeler ready! Load a SWF file or click "Run Current Scene"', 'info');
+		});
+	</script>
+</body>
+</html>
