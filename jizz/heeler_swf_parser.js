@@ -117,7 +117,13 @@ class BitReader {
 	}
 
 	remaining() {
-		return this.buffer.length - this.bytePos;
+		// Account for current bit position
+		const fullBytes = this.buffer.length - this.bytePos;
+		if (this.bitPos === 0) {
+			return fullBytes;
+		}
+		// If we're mid-byte, we have (this byte + remaining bytes)
+		return Math.ceil((fullBytes * 8 - (8 - this.bitPos)) / 8);
 	}
 }
 
@@ -606,26 +612,46 @@ class SWFParser {
 
 	readMatrix(reader) {
 		try {
-			const nBits = reader.readBits(5);
-			if (nBits === 0) {
-				// No scaling/rotation
+			// Check minimum data available for nBits (5 bits = at least 1 byte)
+			if (reader.remaining() < 1) {
+				console.warn('readMatrix: insufficient data for matrix header');
 				return {
-					scaleX: 1,
-					scaleY: 1,
-					rotateSkew0: 0,
-					rotateSkew1: 0,
-					translateX: 0,
-					translateY: 0
+					scaleX: 1, scaleY: 1,
+					rotateSkew0: 0, rotateSkew1: 0,
+					translateX: 0, translateY: 0
 				};
 			}
 			
+			const nBits = reader.readBits(5);
+			
+			// Each field needs nBits bits
+			// Estimate bytes needed: (5 + nBits*6) bits / 8 = rough estimate
+			const bitsNeeded = nBits * 6;
+			const bytesNeeded = Math.ceil((5 + bitsNeeded) / 8);
+			
+			if (reader.remaining() < bytesNeeded) {
+				console.warn(`readMatrix: insufficient data for matrix values (has ${reader.remaining()}, needs ~${bytesNeeded})`);
+				return {
+					scaleX: 1, scaleY: 1,
+					rotateSkew0: 0, rotateSkew1: 0,
+					translateX: 0, translateY: 0
+				};
+			}
+			
+			const scaleX = nBits > 0 ? reader.readBits(nBits) / 65536 : 1;
+			const scaleY = nBits > 0 ? reader.readBits(nBits) / 65536 : 1;
+			const rotateSkew0 = nBits > 0 ? reader.readBits(nBits) / 65536 : 0;
+			const rotateSkew1 = nBits > 0 ? reader.readBits(nBits) / 65536 : 0;
+			const translateX = nBits > 0 ? reader.readSignedBits(nBits) / 20 : 0;
+			const translateY = nBits > 0 ? reader.readSignedBits(nBits) / 20 : 0;
+			
 			return {
-				scaleX: reader.readBits(nBits) / 65536 || 1,
-				scaleY: reader.readBits(nBits) / 65536 || 1,
-				rotateSkew0: reader.readBits(nBits) / 65536 || 0,
-				rotateSkew1: reader.readBits(nBits) / 65536 || 0,
-				translateX: reader.readSignedBits(nBits) / 20 || 0,
-				translateY: reader.readSignedBits(nBits) / 20 || 0
+				scaleX: scaleX || 1,
+				scaleY: scaleY || 1,
+				rotateSkew0: rotateSkew0 || 0,
+				rotateSkew1: rotateSkew1 || 0,
+				translateX: translateX || 0,
+				translateY: translateY || 0
 			};
 		} catch (e) {
 			console.warn('readMatrix: error parsing matrix:', e.message);
@@ -639,9 +665,24 @@ class SWFParser {
 
 	readColorTransform(reader) {
 		try {
+			// Check minimum data for header (3 bits minimum)
+			if (reader.remaining() < 1) {
+				console.warn('readColorTransform: insufficient data');
+				return {};
+			}
+			
 			const hasAdd = reader.readBits(1);
 			const hasMultiply = reader.readBits(1);
 			const nBits = reader.readBits(4);
+			
+			// Estimate bytes needed
+			const bitsNeeded = (hasAdd ? nBits : 0) + (hasMultiply ? nBits : 0) + (nBits * 4);
+			const bytesNeeded = Math.ceil(bitsNeeded / 8);
+			
+			if (reader.remaining() < bytesNeeded) {
+				console.warn('readColorTransform: insufficient data for color values');
+				return {};
+			}
 			
 			const result = {};
 			if (hasMultiply) {
