@@ -20,8 +20,13 @@ class BitReader {
 			const byteIndex = this.bytePos;
 			const bitIndex = 7 - this.bitPos;
 			
+			// Return 0 for bits past end of buffer instead of throwing
 			if (byteIndex >= this.buffer.length) {
-				throw new Error('BitReader: read past end of buffer');
+				// Pad remaining bits with zeros
+				result = result << (numBits - i);
+				this.bytePos = this.buffer.length;
+				this.bitPos = 0;
+				return result;
 			}
 			
 			const bit = (this.buffer[byteIndex] >> bitIndex) & 1;
@@ -420,6 +425,13 @@ class SWFParser {
 		const isMoving = reader.readBits(1);
 
 		reader.alignToByteStart();
+		
+		// Check if we have enough data for depth
+		if (reader.remaining() < 2) {
+			console.warn('PlaceObject2: insufficient data for depth');
+			return;
+		}
+		
 		const depth = reader.readUI16();
 		
 		const obj = {
@@ -433,13 +445,32 @@ class SWFParser {
 			hasClipActions
 		};
 
-		if (hasCharacter) obj.characterId = reader.readUI16();
-		if (hasMatrix) obj.matrix = this.readMatrix(reader);
-		if (hasColorTransform) obj.colorTransform = this.readColorTransform(reader);
-		if (hasRatio) obj.ratio = reader.readUI16();
-		if (hasName) obj.name = reader.readString();
-		if (hasClipDepth) obj.clipDepth = reader.readUI16();
-		if (hasClipActions) this.parseClipActions(reader, obj);
+		try {
+			if (hasCharacter && reader.remaining() >= 2) {
+				obj.characterId = reader.readUI16();
+			}
+			if (hasMatrix && reader.remaining() > 0) {
+				obj.matrix = this.readMatrix(reader);
+			}
+			if (hasColorTransform && reader.remaining() > 0) {
+				obj.colorTransform = this.readColorTransform(reader);
+			}
+			if (hasRatio && reader.remaining() >= 2) {
+				obj.ratio = reader.readUI16();
+			}
+			if (hasName && reader.remaining() > 0) {
+				obj.name = reader.readString();
+			}
+			if (hasClipDepth && reader.remaining() >= 2) {
+				obj.clipDepth = reader.readUI16();
+			}
+			if (hasClipActions && reader.remaining() > 0) {
+				this.parseClipActions(reader, obj);
+			}
+		} catch (e) {
+			// Silently ignore errors reading optional fields
+			console.warn('PlaceObject2: error reading optional fields:', e.message);
+		}
 
 		this.recordTimelineItem(obj);
 	}
@@ -574,37 +605,63 @@ class SWFParser {
 	parseDefineEditText(data) { }
 
 	readMatrix(reader) {
-		const nBits = reader.readBits(5);
-		return {
-			scaleX: reader.readBits(nBits) / 65536,
-			scaleY: reader.readBits(nBits) / 65536,
-			rotateSkew0: reader.readBits(nBits) / 65536,
-			rotateSkew1: reader.readBits(nBits) / 65536,
-			translateX: reader.readSignedBits(nBits) / 20,
-			translateY: reader.readSignedBits(nBits) / 20
-		};
+		try {
+			const nBits = reader.readBits(5);
+			if (nBits === 0) {
+				// No scaling/rotation
+				return {
+					scaleX: 1,
+					scaleY: 1,
+					rotateSkew0: 0,
+					rotateSkew1: 0,
+					translateX: 0,
+					translateY: 0
+				};
+			}
+			
+			return {
+				scaleX: reader.readBits(nBits) / 65536 || 1,
+				scaleY: reader.readBits(nBits) / 65536 || 1,
+				rotateSkew0: reader.readBits(nBits) / 65536 || 0,
+				rotateSkew1: reader.readBits(nBits) / 65536 || 0,
+				translateX: reader.readSignedBits(nBits) / 20 || 0,
+				translateY: reader.readSignedBits(nBits) / 20 || 0
+			};
+		} catch (e) {
+			console.warn('readMatrix: error parsing matrix:', e.message);
+			return {
+				scaleX: 1, scaleY: 1,
+				rotateSkew0: 0, rotateSkew1: 0,
+				translateX: 0, translateY: 0
+			};
+		}
 	}
 
 	readColorTransform(reader) {
-		const hasAdd = reader.readBits(1);
-		const hasMultiply = reader.readBits(1);
-		const nBits = reader.readBits(4);
-		
-		const result = {};
-		if (hasMultiply) {
-			result.multiplyRed = reader.readBits(nBits);
-			result.multiplyGreen = reader.readBits(nBits);
-			result.multiplyBlue = reader.readBits(nBits);
-			result.multiplyAlpha = reader.readBits(nBits);
+		try {
+			const hasAdd = reader.readBits(1);
+			const hasMultiply = reader.readBits(1);
+			const nBits = reader.readBits(4);
+			
+			const result = {};
+			if (hasMultiply) {
+				result.multiplyRed = reader.readBits(nBits) || 255;
+				result.multiplyGreen = reader.readBits(nBits) || 255;
+				result.multiplyBlue = reader.readBits(nBits) || 255;
+				result.multiplyAlpha = reader.readBits(nBits) || 255;
+			}
+			if (hasAdd) {
+				result.addRed = reader.readSignedBits(nBits) || 0;
+				result.addGreen = reader.readSignedBits(nBits) || 0;
+				result.addBlue = reader.readSignedBits(nBits) || 0;
+				result.addAlpha = reader.readSignedBits(nBits) || 0;
+			}
+			
+			return result;
+		} catch (e) {
+			console.warn('readColorTransform: error parsing transform:', e.message);
+			return {};
 		}
-		if (hasAdd) {
-			result.addRed = reader.readSignedBits(nBits);
-			result.addGreen = reader.readSignedBits(nBits);
-			result.addBlue = reader.readSignedBits(nBits);
-			result.addAlpha = reader.readSignedBits(nBits);
-		}
-		
-		return result;
 	}
 
 	parseClipActions(reader, obj) {
